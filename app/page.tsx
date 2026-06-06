@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Quiz } from "@/types/quiz";
 
+type QuizWithMeta = Quiz & { adminName?: string; grade?: string };
+
 const CATEGORY_COLORS: Record<string, string> = {
-  English:          "bg-cyan-200 text-cyan-900",
-  Math:             "bg-pink-200 text-pink-900",
-  PPKN:             "bg-orange-200 text-orange-900",
-  Science:          "bg-green-200 text-green-900",
-  IPS:              "bg-blue-200 text-blue-900",
+  English:            "bg-cyan-200 text-cyan-900",
+  Math:               "bg-pink-200 text-pink-900",
+  PPKN:               "bg-orange-200 text-orange-900",
+  Science:            "bg-green-200 text-green-900",
+  IPS:                "bg-blue-200 text-blue-900",
   "Bahasa Indonesia": "bg-red-200 text-red-900",
   "Other":            "bg-gray-200 text-gray-800",
 };
@@ -16,9 +18,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 const CARD_COLORS = ["bg-yellow-300", "bg-pink-300", "bg-green-300", "bg-blue-300", "bg-orange-300", "bg-purple-300"];
 
 export default function Home() {
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedGrade, setSelectedGrade] = useState("All");
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -52,12 +55,14 @@ export default function Home() {
   }, []);
 
   const categories = ["All", ...Array.from(new Set(quizzes.map((q) => q.category).filter(Boolean)))];
+  const grades = ["All", ...Array.from(new Set(quizzes.map((q) => q.grade).filter(Boolean))) as string[]];
 
   const filtered = quizzes
     .filter((q) => selectedCategory === "All" || q.category === selectedCategory)
+    .filter((q) => selectedGrade === "All" || q.grade === selectedGrade)
     .filter((q) => {
-      const q2 = search.toLowerCase();
-      return !q2 || q.title.toLowerCase().includes(q2) || q.description?.toLowerCase().includes(q2);
+      const s = search.toLowerCase();
+      return !s || q.title.toLowerCase().includes(s) || q.description?.toLowerCase().includes(s);
     });
 
   return (
@@ -103,7 +108,7 @@ export default function Home() {
           <>
             {/* Category filter */}
             {categories.length > 1 && (
-              <div className="flex gap-2 flex-wrap mb-6">
+              <div className="flex gap-2 flex-wrap mb-3">
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -115,6 +120,25 @@ export default function Home() {
                     }`}
                   >
                     {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Grade filter */}
+            {grades.length > 1 && (
+              <div className="flex gap-2 flex-wrap mb-6">
+                {grades.map((grade) => (
+                  <button
+                    key={grade}
+                    onClick={() => setSelectedGrade(grade)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-bold transition ${
+                      selectedGrade === grade
+                        ? "bg-violet-700 text-white"
+                        : "bg-violet-100 text-violet-800 hover:bg-violet-200"
+                    }`}
+                  >
+                    {grade}
                   </button>
                 ))}
               </div>
@@ -132,9 +156,9 @@ export default function Home() {
                             {quiz.category}
                           </span>
                         )}
-                        {(quiz as Quiz & { grade?: string }).grade && (
+                        {quiz.grade && (
                           <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-200 text-violet-900">
-                            {(quiz as Quiz & { grade?: string }).grade}
+                            {quiz.grade}
                           </span>
                         )}
                       </div>
@@ -142,7 +166,7 @@ export default function Home() {
                         <p className="text-sm text-gray-700 mb-1">{quiz.description}</p>
                       )}
                       <p className="text-xs text-gray-600 font-semibold">{quiz.questions.length} questions</p>
-                      <p className="text-xs text-gray-500">By {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"}</p>
+                      <p className="text-xs text-gray-500">By {quiz.adminName ?? "Unknown"}</p>
                       <p className="text-xs text-gray-400">{new Date(quiz.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-center gap-2 ml-4 shrink-0">
@@ -160,7 +184,7 @@ export default function Home() {
               {filtered.length === 0 && (
                 <div className="bg-white rounded-2xl p-10 text-center shadow">
                   <p className="text-gray-400 font-semibold">
-                    {search ? `No quizzes matching "${search}"` : "No quizzes in this category."}
+                    {search ? `No quizzes matching "${search}"` : "No quizzes found."}
                   </p>
                 </div>
               )}
