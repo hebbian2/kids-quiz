@@ -132,6 +132,11 @@ export default function Home() {
                             {quiz.category}
                           </span>
                         )}
+                        {(quiz as Quiz & { grade?: string }).grade && (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-200 text-violet-900">
+                            {(quiz as Quiz & { grade?: string }).grade}
+                          </span>
+                        )}
                       </div>
                       {quiz.description && (
                         <p className="text-sm text-gray-700 mb-1">{quiz.description}</p>

@@ -32,6 +32,15 @@ interface QuizResult {
   answers?: QuizAnswer[];
 }
 
+const QUIZ_GRADES = [
+  "1st Grade",
+  "2nd Grade",
+  "3rd Grade",
+  "4th Grade",
+  "5th Grade",
+  "6th Grade",
+];
+
 const QUIZ_CATEGORIES = [
   "English",
   "Math",
@@ -470,6 +479,9 @@ export default function AdminPage() {
                         {quiz.category && (
                           <span className="text-xs bg-cyan-200 text-cyan-900 px-2 py-0.5 rounded-full font-semibold">{quiz.category}</span>
                         )}
+                        {quiz.grade && (
+                          <span className="text-xs bg-violet-200 text-violet-900 px-2 py-0.5 rounded-full font-semibold">{quiz.grade}</span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-400">
                         {quiz.questions.length} questions · {quizResultsMap[quiz.id]?.length ?? 0} submissions
@@ -650,6 +662,16 @@ export default function AdminPage() {
                 <option value="" disabled>Select category *</option>
                 {QUIZ_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <select
+                value={editingQuiz.grade ?? ""}
+                onChange={(e) => setEditingQuiz((p) => ({ ...p, grade: e.target.value || undefined }))}
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-black bg-white h-14 appearance-none mt-3"
+              >
+                <option value="">Select grade (optional)</option>
+                {QUIZ_GRADES.map((g) => (
+                  <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>

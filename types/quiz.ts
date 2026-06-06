@@ -24,6 +24,7 @@ export interface Quiz {
   title: string;
   description: string;
   category: string;
+  grade?: string;
   questions: Question[];
   createdAt: string;
   adminId: string;
