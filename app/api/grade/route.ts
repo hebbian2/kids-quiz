@@ -28,20 +28,23 @@ export async function PUT(req: Request) {
     answers: QuizAnswer[];
   };
 
-  try {
-    const graded = await Promise.all(
-      questions.map(async (q) => {
-        const ans = answers.find((a) => a.questionId === q.id);
-        if (!ans?.answer?.trim()) {
-          return { questionId: q.id, score: 0, feedback: "No answer provided." };
-        }
-        const result = await gradeEssay(q.question, q.rubric, q.maxPoints, ans.answer);
-        return { questionId: q.id, ...result };
-      })
-    );
-    return NextResponse.json({ graded });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Grading failed" }, { status: 500 });
+  const graded: { questionId: string; score: number; feedback: string }[] = [];
+
+  for (const q of questions) {
+    const ans = answers.find((a) => a.questionId === q.id);
+    if (!ans?.answer?.trim()) {
+      graded.push({ questionId: q.id, score: 0, feedback: "No answer provided." });
+      continue;
+    }
+    try {
+      const result = await gradeEssay(q.question, q.rubric, q.maxPoints, ans.answer);
+      graded.push({ questionId: q.id, ...result });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[grade] question ${q.id}:`, msg);
+      graded.push({ questionId: q.id, score: 0, feedback: "Could not grade this answer. Please ask your teacher to review it." });
+    }
   }
+
+  return NextResponse.json({ graded });
 }
