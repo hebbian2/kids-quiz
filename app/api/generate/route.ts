@@ -10,7 +10,8 @@ export async function POST(req: Request) {
     const questions = await generateQuestions(prompt);
     return NextResponse.json({ questions });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[/api/generate]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

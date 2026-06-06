@@ -1,11 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Question } from "@/types/quiz";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+function getModel() {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  return genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+}
 
 export async function generateQuestions(prompt: string): Promise<Question[]> {
-  const result = await model.generateContent(
+  const result = await getModel().generateContent(
     `You are a teacher creating quiz questions for kids. Generate questions based on this request: "${prompt}"
 
 Return ONLY valid JSON (no markdown, no explanation) in this exact format:
@@ -55,7 +57,7 @@ export async function gradeEssay(
   maxPoints: number,
   answer: string
 ): Promise<{ score: number; feedback: string }> {
-  const result = await model.generateContent(
+  const result = await getModel().generateContent(
     `Grade this student essay answer for a kids quiz.
 
 Question: ${question}
