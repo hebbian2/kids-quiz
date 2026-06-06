@@ -627,7 +627,7 @@ export default function AdminPage() {
               <select
                 value={editingQuiz.category ?? ""}
                 onChange={(e) => setEditingQuiz((p) => ({ ...p, category: e.target.value }))}
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-black"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-black bg-white h-14 appearance-none"
               >
                 <option value="" disabled>Select category *</option>
                 {QUIZ_CATEGORIES.map((cat) => (
