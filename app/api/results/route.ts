@@ -17,11 +17,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json() as Omit<QuizResult, "id" | "submittedAt">;
+  const body = await req.json() as Omit<QuizResult, "id" | "submittedAt" | "ipAddress">;
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ipAddress = forwarded ? forwarded.split(",")[0].trim() : (req.headers.get("x-real-ip") ?? undefined);
   const result: QuizResult = {
     ...body,
     id: `result-${Date.now()}`,
     submittedAt: new Date().toISOString(),
+    ipAddress,
   };
   await saveResult(result);
   return NextResponse.json(result, { status: 201 });

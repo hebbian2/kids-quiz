@@ -47,6 +47,7 @@ export interface QuizResult {
   maxScore: number;
   percentage: number;
   submittedAt: string;
+  ipAddress?: string;
 }
 
 export type AdminRole = "admin" | "super-admin";

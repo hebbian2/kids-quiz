@@ -29,6 +29,7 @@ interface QuizResult {
   maxScore: number;
   percentage: number;
   submittedAt: string;
+  ipAddress?: string;
   answers?: QuizAnswer[];
 }
 
@@ -558,6 +559,7 @@ export default function AdminPage() {
                         >
                           <div>
                             <p className="font-bold text-gray-800">{r.studentName}</p>
+                            {r.ipAddress && <p className="text-xs text-gray-400 font-mono">{r.ipAddress}</p>}
                             <p className="text-sm text-gray-400">{quiz?.title ?? "Unknown quiz"}</p>
                             <p className="text-xs text-gray-300 mt-1">{new Date(r.submittedAt).toLocaleString()}</p>
                           </div>
