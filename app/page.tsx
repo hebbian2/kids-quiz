@@ -4,11 +4,13 @@ import Link from "next/link";
 import { Quiz } from "@/types/quiz";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  English: "bg-cyan-200 text-cyan-900",
-  Math:    "bg-pink-200 text-pink-900",
-  PPKN:   "bg-orange-200 text-orange-900",
-  Science: "bg-green-200 text-green-900",
-  IPS:     "bg-blue-200 text-blue-900",
+  English:          "bg-cyan-200 text-cyan-900",
+  Math:             "bg-pink-200 text-pink-900",
+  PPKN:             "bg-orange-200 text-orange-900",
+  Science:          "bg-green-200 text-green-900",
+  IPS:              "bg-blue-200 text-blue-900",
+  "Bahasa Indonesia": "bg-red-200 text-red-900",
+  "Other":            "bg-gray-200 text-gray-800",
 };
 
 const CARD_COLORS = ["bg-yellow-300", "bg-pink-300", "bg-green-300", "bg-blue-300", "bg-orange-300", "bg-purple-300"];
@@ -18,6 +20,15 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function shareQuiz(e: React.MouseEvent, quizId: string) {
+    e.preventDefault();
+    const url = `${window.location.origin}/quiz/${quizId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(quizId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
 
   function loadQuizzes() {
     setLoading(true);
@@ -129,7 +140,15 @@ export default function Home() {
                       <p className="text-xs text-gray-500">By {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"}</p>
                       <p className="text-xs text-gray-400">{new Date(quiz.createdAt).toLocaleString()}</p>
                     </div>
-                    <div className="text-3xl ml-4">➡️</div>
+                    <div className="flex flex-col items-center gap-2 ml-4 shrink-0">
+                      <div className="text-3xl">➡️</div>
+                      <button
+                        onClick={(e) => shareQuiz(e, quiz.id)}
+                        className="text-xs font-bold px-3 py-1 rounded-full bg-white/70 hover:bg-white transition"
+                      >
+                        {copiedId === quiz.id ? "Copied!" : "Share"}
+                      </button>
+                    </div>
                   </div>
                 </Link>
               ))}

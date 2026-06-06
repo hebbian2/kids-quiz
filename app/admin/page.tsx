@@ -37,6 +37,8 @@ const QUIZ_CATEGORIES = [
   "PPKN",
   "Science",
   "IPS",
+  "Bahasa Indonesia",
+  "Other",
 ];
 
 // ─── Login Screen ────────────────────────────────────────────────────────────
