@@ -22,7 +22,7 @@ export default function Home() {
     fetch("/api/quizzes/public")
       .then((r) => r.json())
       .then((data) => {
-        setQuizzes(data);
+        setQuizzes(Array.isArray(data) ? data : []);
         setLoading(false);
       });
   }, []);
