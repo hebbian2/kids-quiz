@@ -156,11 +156,11 @@ export default function QuizPage() {
             placeholder="Your name"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
-            maxLength={20}
+            maxLength={30}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:outline-none focus:border-yellow-400 mb-2 text-black"
             onKeyDown={(e) => e.key === "Enter" && studentName.trim() && setStep("quiz")}
           />
-          <p className="text-xs text-gray-400 text-right mb-4">{studentName.length}/20</p>
+          <p className="text-xs text-gray-400 text-right mb-4">{studentName.length}/30</p>
           <button
             onClick={() => setStep("quiz")}
             disabled={!studentName.trim()}
