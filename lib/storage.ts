@@ -32,15 +32,20 @@ async function setList<T>(key: string, data: T[]) {
 // ─── Admins ───────────────────────────────────────────────────────────────────
 
 async function seedSuperAdmin(admins: Admin[]): Promise<Admin[]> {
-  if (admins.length === 0) {
-    const superAdmin: Admin = {
+  const code = process.env.SUPER_ADMIN_CODE;
+  if (!code) return admins;
+  const idx = admins.findIndex((a) => a.id === "admin-super");
+  if (idx === -1) {
+    admins = [...admins, {
       id: "admin-super",
       name: "Super Admin",
-      code: "SUPER2024",
+      code,
       role: "super-admin",
       createdAt: new Date().toISOString(),
-    };
-    admins = [superAdmin];
+    }];
+    await setList(KEYS.admins, admins);
+  } else if (admins[idx].code !== code) {
+    admins[idx] = { ...admins[idx], code };
     await setList(KEYS.admins, admins);
   }
   return admins;
