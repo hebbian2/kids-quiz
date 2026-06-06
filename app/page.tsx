@@ -17,6 +17,18 @@ export default function Home() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [search, setSearch] = useState("");
+
+  function loadQuizzes() {
+    setLoading(true);
+    fetch("/api/quizzes/public")
+      .then((r) => r.json())
+      .then((data) => {
+        setQuizzes(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }
 
   useEffect(() => {
     fetch("/api/quizzes/public")
@@ -24,11 +36,18 @@ export default function Home() {
       .then((data) => {
         setQuizzes(Array.isArray(data) ? data : []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const categories = ["All", ...Array.from(new Set(quizzes.map((q) => q.category).filter(Boolean)))];
-  const filtered = selectedCategory === "All" ? quizzes : quizzes.filter((q) => q.category === selectedCategory);
+
+  const filtered = quizzes
+    .filter((q) => selectedCategory === "All" || q.category === selectedCategory)
+    .filter((q) => {
+      const q2 = search.toLowerCase();
+      return !q2 || q.title.toLowerCase().includes(q2) || q.description?.toLowerCase().includes(q2);
+    });
 
   return (
     <main className="flex flex-col items-center min-h-screen py-16 px-4">
@@ -37,6 +56,24 @@ export default function Home() {
           <div className="text-6xl mb-4">🎓</div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Kids Quiz by Mama Diva</h1>
           <p className="text-gray-500 text-lg">Pick a quiz and show what you know!</p>
+        </div>
+
+        {/* Search + Reload */}
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Search quizzes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-yellow-400 text-black"
+          />
+          <button
+            onClick={loadQuizzes}
+            disabled={loading}
+            className="bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 transition disabled:opacity-40"
+          >
+            {loading ? "..." : "↻"}
+          </button>
         </div>
 
         {loading ? (
@@ -90,6 +127,7 @@ export default function Home() {
                       )}
                       <p className="text-xs text-gray-600 font-semibold">{quiz.questions.length} questions</p>
                       <p className="text-xs text-gray-500">By {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"}</p>
+                      <p className="text-xs text-gray-400">{new Date(quiz.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="text-3xl ml-4">➡️</div>
                   </div>
@@ -97,7 +135,9 @@ export default function Home() {
               ))}
               {filtered.length === 0 && (
                 <div className="bg-white rounded-2xl p-10 text-center shadow">
-                  <p className="text-gray-400 font-semibold">No quizzes in this category.</p>
+                  <p className="text-gray-400 font-semibold">
+                    {search ? `No quizzes matching "${search}"` : "No quizzes in this category."}
+                  </p>
                 </div>
               )}
             </div>

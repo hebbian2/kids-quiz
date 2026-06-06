@@ -629,7 +629,7 @@ export default function AdminPage() {
                 onChange={(e) => setEditingQuiz((p) => ({ ...p, category: e.target.value }))}
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-black"
               >
-                <option value="">Select category (optional)</option>
+                <option value="" disabled>Select category *</option>
                 {QUIZ_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -705,7 +705,7 @@ export default function AdminPage() {
             <div className="flex gap-3">
               <button
                 onClick={saveQuiz}
-                disabled={saving || !editingQuiz.title?.trim()}
+                disabled={saving || !editingQuiz.title?.trim() || !editingQuiz.category}
                 className="flex-1 bg-green-400 text-gray-900 py-3 rounded-xl font-bold hover:bg-green-500 transition disabled:opacity-40"
               >
                 {saving ? "Saving..." : "Save Quiz"}
