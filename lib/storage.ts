@@ -24,7 +24,7 @@ export interface AppSettings {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  defaultModel: "gemini-1.5-flash-8b",
+  defaultModel: "gemini-1.5-flash",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

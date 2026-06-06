@@ -231,7 +231,7 @@ export default function AdminPage() {
   const [resultsPage, setResultsPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
   const [aiPrompt, setAiPrompt] = useState("");
-  const [aiModel, setAiModel] = useState("gemini-1.5-flash-8b");
+  const [aiModel, setAiModel] = useState("gemini-1.5-flash");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState("");
   const [aiError, setAiError] = useState("");
