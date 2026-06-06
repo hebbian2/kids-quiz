@@ -16,7 +16,16 @@ const KEYS = {
   quizzes: "quizzes",
   results: "results",
   admins: "admins",
+  settings: "settings",
 } as const;
+
+export interface AppSettings {
+  defaultModel: string;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  defaultModel: "gemini-1.5-flash-8b",
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -112,6 +121,19 @@ export async function saveQuiz(quiz: Quiz) {
 export async function deleteQuiz(id: string) {
   const quizzes = await getList<Quiz>(KEYS.quizzes);
   await setList(KEYS.quizzes, quizzes.filter((q) => q.id !== id));
+}
+
+// ─── Results ──────────────────────────────────────────────────────────────────
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+export async function getSettings(): Promise<AppSettings> {
+  const data = await getRedis().get<AppSettings>(KEYS.settings);
+  return { ...DEFAULT_SETTINGS, ...data };
+}
+
+export async function saveSettings(settings: AppSettings) {
+  await getRedis().set(KEYS.settings, settings);
 }
 
 // ─── Results ──────────────────────────────────────────────────────────────────

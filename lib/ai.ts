@@ -2,14 +2,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Question } from "@/types/quiz";
 
 export const GEMINI_MODELS = [
-  { id: "gemini-2.5-flash",  label: "Gemini 2.5 Flash (Recommended)" },
-  { id: "gemini-2.5-pro",    label: "Gemini 2.5 Pro" },
-  { id: "gemini-2.0-flash",  label: "Gemini 2.0 Flash" },
-  { id: "gemini-flash-latest", label: "Gemini Flash Latest" },
-  { id: "gemini-1.5-flash",  label: "Gemini 1.5 Flash" },
+  { id: "gemini-1.5-flash-8b", label: "Gemini 1.5 Flash 8B (Default - Free tier)" },
+  { id: "gemini-1.5-flash",    label: "Gemini 1.5 Flash" },
+  { id: "gemini-2.0-flash",    label: "Gemini 2.0 Flash" },
+  { id: "gemini-2.5-flash",    label: "Gemini 2.5 Flash" },
+  { id: "gemini-2.5-pro",      label: "Gemini 2.5 Pro" },
 ];
 
-function getModel(model = "gemini-2.5-flash") {
+function getModel(model = "gemini-1.5-flash-8b") {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   return genAI.getGenerativeModel({ model });
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Quiz, Question, MultipleChoiceQuestion, EssayQuestion } from "@/types/quiz";
 import { GEMINI_MODELS } from "@/lib/ai";
 
-type AdminTab = "quizzes" | "editor" | "results" | "admins";
+type AdminTab = "quizzes" | "editor" | "results" | "admins" | "settings";
 
 interface AdminUser {
   id: string;
@@ -231,7 +231,7 @@ export default function AdminPage() {
   const [resultsPage, setResultsPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
   const [aiPrompt, setAiPrompt] = useState("");
-  const [aiModel, setAiModel] = useState(GEMINI_MODELS[0].id);
+  const [aiModel, setAiModel] = useState("gemini-1.5-flash-8b");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState("");
   const [aiError, setAiError] = useState("");
@@ -275,7 +275,12 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (admin) loadData();
+    if (admin) {
+      loadData();
+      fetch("/api/settings")
+        .then((r) => r.json())
+        .then((s) => { if (s.defaultModel) setAiModel(s.defaultModel); });
+    }
   }, [admin]);
 
   function newQuiz() {
@@ -391,8 +396,8 @@ export default function AdminPage() {
   }, {});
 
   const tabs: AdminTab[] = admin.role === "super-admin"
-    ? ["quizzes", "results", "admins"]
-    : ["quizzes", "results"];
+    ? ["quizzes", "results", "admins", "settings"]
+    : ["quizzes", "results", "settings"];
 
   return (
     <main className="min-h-screen px-4 py-10">
@@ -609,6 +614,15 @@ export default function AdminPage() {
           <AdminManagement adminCode={adminCode} />
         )}
 
+        {/* Settings Tab */}
+        {tab === "settings" && (
+          <SettingsPanel
+            adminCode={adminCode}
+            currentModel={aiModel}
+            onModelChange={setAiModel}
+          />
+        )}
+
         {/* Editor Tab */}
         {tab === "editor" && editingQuiz && (
           <div>
@@ -663,18 +677,6 @@ export default function AdminPage() {
                 >
                   {aiLoading ? "Generating..." : "Generate"}
                 </button>
-              </div>
-              <div className="mt-2">
-                <select
-                  value={aiModel}
-                  onChange={(e) => setAiModel(e.target.value)}
-                  disabled={aiLoading}
-                  className="w-full border-2 border-violet-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-400 text-black bg-white disabled:opacity-50"
-                >
-                  {GEMINI_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>{m.label}</option>
-                  ))}
-                </select>
               </div>
               {aiLoading && (
                 <div className="mt-3 flex items-center gap-2 text-violet-700 text-sm bg-violet-50 rounded-xl px-4 py-3">
@@ -944,6 +946,72 @@ function ResultDetailModal({
             })
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Settings Panel ───────────────────────────────────────────────────────────
+
+function SettingsPanel({
+  adminCode,
+  currentModel,
+  onModelChange,
+}: {
+  adminCode: string;
+  currentModel: string;
+  onModelChange: (model: string) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave(model: string) {
+    setSaving(true);
+    setError("");
+    setSaved(false);
+    const res = await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "x-admin-code": adminCode },
+      body: JSON.stringify({ defaultModel: model }),
+    });
+    if (res.ok) {
+      onModelChange(model);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } else {
+      const data = await res.json() as { error?: string };
+      setError(data.error ?? "Failed to save");
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow p-6">
+      <h2 className="text-xl font-bold text-gray-700 mb-6">Settings</h2>
+
+      <div className="mb-4">
+        <label className="block text-sm font-semibold text-gray-600 mb-2">
+          Default AI Model for Question Generation
+        </label>
+        <div className="flex gap-2">
+          <select
+            value={currentModel}
+            onChange={(e) => handleSave(e.target.value)}
+            disabled={saving}
+            className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-400 text-black bg-white h-14 appearance-none disabled:opacity-50"
+          >
+            {GEMINI_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+        {saved && <p className="text-green-600 text-sm mt-2 font-medium">Saved!</p>}
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        <p className="text-xs text-gray-400 mt-2">
+          This model will be pre-selected when you open the AI question generator.
+          Super admins can change this for all users.
+        </p>
       </div>
     </div>
   );
