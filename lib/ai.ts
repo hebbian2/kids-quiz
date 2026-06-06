@@ -4,7 +4,6 @@ import { Question } from "@/types/quiz";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
-
 export async function generateQuestions(prompt: string): Promise<Question[]> {
   const result = await model.generateContent(
     `You are a teacher creating quiz questions for kids. Generate questions based on this request: "${prompt}"
