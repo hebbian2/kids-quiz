@@ -62,8 +62,8 @@ function LoginScreen({ onLogin }: { onLogin: (admin: AdminUser, code: string) =>
       } else {
         onLogin(data.admin, code.trim().toUpperCase());
       }
-    } catch {
-      setError("Connection error. Try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Connection error. Try again.");
     } finally {
       setLoading(false);
     }
