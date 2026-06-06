@@ -465,7 +465,9 @@ export default function AdminPage() {
                       <p className="text-sm text-gray-400">
                         {quiz.questions.length} questions · {quizResultsMap[quiz.id]?.length ?? 0} submissions
                       </p>
-                      <p className="text-xs text-gray-300 mt-0.5">Created by {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"}</p>
+                      <p className="text-xs text-gray-300 mt-0.5">
+                        Created by {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"} · {new Date(quiz.createdAt).toLocaleString()}
+                      </p>
                     </div>
                     <div className="flex gap-2">
                       <button
