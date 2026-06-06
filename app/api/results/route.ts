@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
-import { getResults, saveResult } from "@/lib/storage";
+import { getResults, saveResult, getAdminByCode, getQuizzes } from "@/lib/storage";
 import { QuizResult } from "@/types/quiz";
 
-export async function GET() {
-  return NextResponse.json(await getResults());
+export async function GET(req: Request) {
+  const code = req.headers.get("x-admin-code") ?? "";
+  const admin = code ? await getAdminByCode(code.toUpperCase()) : null;
+
+  const results = await getResults();
+
+  if (admin && admin.role !== "super-admin") {
+    const adminQuizIds = new Set((await getQuizzes(admin.id)).map((q) => q.id));
+    return NextResponse.json(results.filter((r) => adminQuizIds.has(r.quizId)));
+  }
+
+  return NextResponse.json(results);
 }
 
 export async function POST(req: Request) {

@@ -267,7 +267,7 @@ export default function AdminPage() {
     fetch("/api/quizzes", { headers: authHeaders() })
       .then((r) => r.json())
       .then(setQuizzes);
-    fetch("/api/results").then((r) => r.json()).then(setResults);
+    fetch("/api/results", { headers: authHeaders() }).then((r) => r.json()).then(setResults);
   }
 
   useEffect(() => {
