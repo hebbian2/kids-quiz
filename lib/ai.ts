@@ -1,13 +1,21 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Question } from "@/types/quiz";
 
-function getModel() {
+export const GEMINI_MODELS = [
+  { id: "gemini-2.5-flash",  label: "Gemini 2.5 Flash (Recommended)" },
+  { id: "gemini-2.5-pro",    label: "Gemini 2.5 Pro" },
+  { id: "gemini-2.0-flash",  label: "Gemini 2.0 Flash" },
+  { id: "gemini-flash-latest", label: "Gemini Flash Latest" },
+  { id: "gemini-1.5-flash",  label: "Gemini 1.5 Flash" },
+];
+
+function getModel(model = "gemini-2.5-flash") {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  return genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+  return genAI.getGenerativeModel({ model });
 }
 
-export async function generateQuestions(prompt: string): Promise<Question[]> {
-  const result = await getModel().generateContent(
+export async function generateQuestions(prompt: string, model?: string): Promise<Question[]> {
+  const result = await getModel(model).generateContent(
     `You are a teacher creating quiz questions for kids. Generate questions based on this request: "${prompt}"
 
 Return ONLY valid JSON (no markdown, no explanation) in this exact format:

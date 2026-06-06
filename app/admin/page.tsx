@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Quiz, Question, MultipleChoiceQuestion, EssayQuestion } from "@/types/quiz";
+import { GEMINI_MODELS } from "@/lib/ai";
 
 type AdminTab = "quizzes" | "editor" | "results" | "admins";
 
@@ -230,6 +231,7 @@ export default function AdminPage() {
   const [resultsPage, setResultsPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
   const [aiPrompt, setAiPrompt] = useState("");
+  const [aiModel, setAiModel] = useState(GEMINI_MODELS[0].id);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState("");
   const [aiError, setAiError] = useState("");
@@ -302,7 +304,7 @@ export default function AdminPage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt }),
+        body: JSON.stringify({ prompt: aiPrompt, model: aiModel }),
       });
       setAiStatus("Processing response...");
       const data = await res.json() as { questions?: Question[]; error?: string };
@@ -661,6 +663,18 @@ export default function AdminPage() {
                 >
                   {aiLoading ? "Generating..." : "Generate"}
                 </button>
+              </div>
+              <div className="mt-2">
+                <select
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  disabled={aiLoading}
+                  className="w-full border-2 border-violet-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-400 text-black bg-white disabled:opacity-50"
+                >
+                  {GEMINI_MODELS.map((m) => (
+                    <option key={m.id} value={m.id}>{m.label}</option>
+                  ))}
+                </select>
               </div>
               {aiLoading && (
                 <div className="mt-3 flex items-center gap-2 text-violet-700 text-sm bg-violet-50 rounded-xl px-4 py-3">
