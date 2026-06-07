@@ -473,9 +473,9 @@ export default function AdminPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {quizzes.map((quiz) => (
-                  <div key={quiz.id} className="bg-white rounded-2xl shadow p-5 flex items-center justify-between">
+                  <div key={quiz.id} className="bg-white rounded-2xl shadow p-5 flex flex-col gap-3">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-bold text-gray-800">{quiz.title}</h3>
                         {quiz.category && (
                           <span className="text-xs bg-cyan-200 text-cyan-900 px-2 py-0.5 rounded-full font-semibold">{quiz.category}</span>
@@ -491,7 +491,7 @@ export default function AdminPage() {
                         Created by {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"} · {new Date(quiz.createdAt).toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <button
                         onClick={() => {
                           const url = `${window.location.origin}/quiz/${quiz.id}`;
