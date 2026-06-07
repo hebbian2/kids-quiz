@@ -24,6 +24,8 @@ export default function Home() {
   const [selectedGrade, setSelectedGrade] = useState("All");
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   function shareQuiz(e: React.MouseEvent, quizId: string) {
     e.preventDefault();
@@ -64,6 +66,14 @@ export default function Home() {
       const s = search.toLowerCase();
       return !s || q.title.toLowerCase().includes(s) || q.description?.toLowerCase().includes(s);
     });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function changeFilter(setter: (v: string) => void, value: string) {
+    setter(value);
+    setPage(1);
+  }
 
   return (
     <main className="flex flex-col items-center min-h-screen py-16 px-4">
@@ -112,7 +122,7 @@ export default function Home() {
                 {categories.map((cat) => (
                   <button
                     key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => changeFilter(setSelectedCategory, cat)}
                     className={`px-4 py-1.5 rounded-full text-sm font-bold transition ${
                       selectedCategory === cat
                         ? "bg-gray-800 text-white"
@@ -131,7 +141,7 @@ export default function Home() {
                 {grades.map((grade) => (
                   <button
                     key={grade}
-                    onClick={() => setSelectedGrade(grade)}
+                    onClick={() => changeFilter(setSelectedGrade, grade)}
                     className={`px-4 py-1.5 rounded-full text-sm font-bold transition ${
                       selectedGrade === grade
                         ? "bg-violet-700 text-white"
@@ -145,7 +155,7 @@ export default function Home() {
             )}
 
             <div className="flex flex-col gap-4">
-              {filtered.map((quiz, idx) => (
+              {paginated.map((quiz, idx) => (
                 <Link key={quiz.id} href={`/quiz/${quiz.id}`}>
                   <div className={`${CARD_COLORS[idx % CARD_COLORS.length]} rounded-2xl p-6 flex items-center justify-between cursor-pointer hover:brightness-95 transition`}>
                     <div>
@@ -189,6 +199,39 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition disabled:opacity-40"
+                >
+                  ←
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-9 h-9 rounded-xl text-sm font-bold transition ${
+                      page === p
+                        ? "bg-gray-800 text-white"
+                        : "bg-white border-2 border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition disabled:opacity-40"
+                >
+                  →
+                </button>
+              </div>
+            )}
           </>
         )}
 

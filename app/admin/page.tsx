@@ -240,6 +240,8 @@ export default function AdminPage() {
   const [selectedResult, setSelectedResult] = useState<QuizResult | null>(null);
   const [resultsPage, setResultsPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
+  const [quizzesPage, setQuizzesPage] = useState(1);
+  const QUIZZES_PER_PAGE = 10;
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiModel, setAiModel] = useState("gemini-flash-latest");
   const [aiLoading, setAiLoading] = useState(false);
@@ -405,6 +407,9 @@ export default function AdminPage() {
     return acc;
   }, {});
 
+  const quizTotalPages = Math.ceil(quizzes.length / QUIZZES_PER_PAGE);
+  const paginatedQuizzes = quizzes.slice((quizzesPage - 1) * QUIZZES_PER_PAGE, quizzesPage * QUIZZES_PER_PAGE);
+
   const tabs: AdminTab[] = admin.role === "super-admin"
     ? ["quizzes", "results", "admins", "settings"]
     : ["quizzes", "results", "settings"];
@@ -471,60 +476,93 @@ export default function AdminPage() {
                 <p className="text-gray-400">No quizzes yet. Create one!</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {quizzes.map((quiz) => (
-                  <div key={quiz.id} className="bg-white rounded-2xl shadow p-5 flex flex-col gap-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-bold text-gray-800">{quiz.title}</h3>
-                        {quiz.category && (
-                          <span className="text-xs bg-cyan-200 text-cyan-900 px-2 py-0.5 rounded-full font-semibold">{quiz.category}</span>
-                        )}
-                        {quiz.grade && (
-                          <span className="text-xs bg-violet-200 text-violet-900 px-2 py-0.5 rounded-full font-semibold">{quiz.grade}</span>
-                        )}
+              <>
+                <div className="flex flex-col gap-3">
+                  {paginatedQuizzes.map((quiz) => (
+                    <div key={quiz.id} className="bg-white rounded-2xl shadow p-5 flex flex-col gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-bold text-gray-800">{quiz.title}</h3>
+                          {quiz.category && (
+                            <span className="text-xs bg-cyan-200 text-cyan-900 px-2 py-0.5 rounded-full font-semibold">{quiz.category}</span>
+                          )}
+                          {quiz.grade && (
+                            <span className="text-xs bg-violet-200 text-violet-900 px-2 py-0.5 rounded-full font-semibold">{quiz.grade}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400">
+                          {quiz.questions.length} questions · {quizResultsMap[quiz.id]?.length ?? 0} submissions
+                        </p>
+                        <p className="text-xs text-gray-300 mt-0.5">
+                          Created by {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"} · {new Date(quiz.createdAt).toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-400">
-                        {quiz.questions.length} questions · {quizResultsMap[quiz.id]?.length ?? 0} submissions
-                      </p>
-                      <p className="text-xs text-gray-300 mt-0.5">
-                        Created by {(quiz as Quiz & { adminName?: string }).adminName ?? "Unknown"} · {new Date(quiz.createdAt).toLocaleString()}
-                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/quiz/${quiz.id}`;
+                            navigator.clipboard.writeText(url);
+                            setCopiedId(quiz.id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }}
+                          className="text-sm px-4 py-2 rounded-full bg-green-300 text-green-900 font-semibold hover:bg-green-400 transition"
+                        >
+                          {copiedId === quiz.id ? "Copied!" : "Share"}
+                        </button>
+                        <Link
+                          href={`/quiz/${quiz.id}`}
+                          className="text-sm px-4 py-2 rounded-full bg-blue-200 text-blue-900 font-semibold hover:bg-blue-300 transition"
+                        >
+                          Preview
+                        </Link>
+                        <button
+                          onClick={() => editQuiz(quiz)}
+                          className="text-sm px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteQuizHandler(quiz.id)}
+                          className="text-sm px-4 py-2 rounded-full bg-red-300 text-red-900 font-semibold hover:bg-red-400 transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
+                  ))}
+                </div>
+                {quizTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <button
+                      onClick={() => setQuizzesPage((p) => Math.max(1, p - 1))}
+                      disabled={quizzesPage === 1}
+                      className="px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition disabled:opacity-40"
+                    >
+                      ←
+                    </button>
+                    {Array.from({ length: quizTotalPages }, (_, i) => i + 1).map((p) => (
                       <button
-                        onClick={() => {
-                          const url = `${window.location.origin}/quiz/${quiz.id}`;
-                          navigator.clipboard.writeText(url);
-                          setCopiedId(quiz.id);
-                          setTimeout(() => setCopiedId(null), 2000);
-                        }}
-                        className="text-sm px-4 py-2 rounded-full bg-green-300 text-green-900 font-semibold hover:bg-green-400 transition"
+                        key={p}
+                        onClick={() => setQuizzesPage(p)}
+                        className={`w-9 h-9 rounded-xl text-sm font-bold transition ${
+                          quizzesPage === p
+                            ? "bg-gray-800 text-white"
+                            : "bg-white border-2 border-gray-200 text-gray-600 hover:bg-gray-100"
+                        }`}
                       >
-                        {copiedId === quiz.id ? "Copied!" : "Share"}
+                        {p}
                       </button>
-                      <Link
-                        href={`/quiz/${quiz.id}`}
-                        className="text-sm px-4 py-2 rounded-full bg-blue-200 text-blue-900 font-semibold hover:bg-blue-300 transition"
-                      >
-                        Preview
-                      </Link>
-                      <button
-                        onClick={() => editQuiz(quiz)}
-                        className="text-sm px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteQuizHandler(quiz.id)}
-                        className="text-sm px-4 py-2 rounded-full bg-red-300 text-red-900 font-semibold hover:bg-red-400 transition"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    ))}
+                    <button
+                      onClick={() => setQuizzesPage((p) => Math.min(quizTotalPages, p + 1))}
+                      disabled={quizzesPage === quizTotalPages}
+                      className="px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition disabled:opacity-40"
+                    >
+                      →
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         )}
