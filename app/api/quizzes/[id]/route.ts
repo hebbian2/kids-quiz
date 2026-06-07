@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import { getQuiz, saveQuiz, deleteQuiz, getAdminByCode } from "@/lib/storage";
-import { Quiz, MultipleChoiceQuestion } from "@/types/quiz";
+import { Quiz, MultipleChoiceQuestion, EssayQuestion } from "@/types/quiz";
 
 function stripAnswers(quiz: Quiz): Quiz {
   return {
     ...quiz,
     questions: quiz.questions.map((q) => {
-      if (q.type !== "multiple-choice") return q;
-      const { correctAnswer: _, ...rest } = q as MultipleChoiceQuestion;
+      if (q.type === "multiple-choice") {
+        const { correctAnswer: _, ...rest } = q as MultipleChoiceQuestion;
+        void _;
+        return rest as MultipleChoiceQuestion;
+      }
+      const { rubric: _, ...rest } = q as EssayQuestion;
       void _;
-      return rest as MultipleChoiceQuestion;
+      return rest as EssayQuestion;
     }),
   };
 }
