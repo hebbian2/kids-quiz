@@ -56,58 +56,38 @@ export default function QuizPage() {
     setStep("grading");
     setError("");
 
-    const essayQuestions = questions.filter((q): q is EssayQuestion => q.type === "essay");
-    const essayGrades: Record<string, { score: number; feedback: string }> = {};
+    const allAnswers: { questionId: string; answer: string }[] = questions.map((q) => ({
+      questionId: q.id,
+      answer: answers[q.id] ?? "",
+    }));
 
-    if (essayQuestions.length > 0) {
-      try {
-        const res = await fetch("/api/grade", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            questions: essayQuestions,
-            answers: essayQuestions.map((q) => ({
-              questionId: q.id,
-              answer: answers[q.id] ?? "",
-            })),
-          }),
-        });
-        const data = await res.json() as { graded: { questionId: string; score: number; feedback: string }[] };
-        for (const g of data.graded) {
-          essayGrades[g.questionId] = { score: g.score, feedback: g.feedback };
-        }
-      } catch {
-        setError("Essay grading failed. Continuing with 0 for essays.");
+    const gradedMap: Record<string, { score: number; feedback: string }> = {};
+    try {
+      const res = await fetch("/api/grade", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quizId: quiz!.id, answers: allAnswers }),
+      });
+      const data = await res.json() as { graded: { questionId: string; score: number; feedback: string }[] };
+      for (const g of data.graded) {
+        gradedMap[g.questionId] = { score: g.score, feedback: g.feedback };
       }
+    } catch {
+      setError("Grading failed. Some scores may show as 0.");
     }
 
-    const allAnswers: GradedAnswer[] = questions.map((q) => {
-      if (q.type === "multiple-choice") {
-        const mcq = q as MultipleChoiceQuestion;
-        const userAnswer = answers[q.id] ?? "";
-        const correct = userAnswer === mcq.correctAnswer;
-        const correctOption = mcq.options.find((o) => o.label === mcq.correctAnswer);
-        return {
-          questionId: q.id,
-          type: "multiple-choice",
-          answer: userAnswer,
-          score: correct ? mcq.points : 0,
-          feedback: correct ? "Correct!" : `Correct answer: ${mcq.correctAnswer.toUpperCase()}. ${correctOption?.text ?? ""}`,
-        };
-      } else {
-        const eq = q as EssayQuestion;
-        const grade = essayGrades[q.id] ?? { score: 0, feedback: "Could not grade." };
-        return {
-          questionId: q.id,
-          type: "essay",
-          answer: answers[q.id] ?? "",
-          score: grade.score,
-          feedback: grade.feedback,
-        };
-      }
+    const gradedAnswers: GradedAnswer[] = questions.map((q) => {
+      const grade = gradedMap[q.id] ?? { score: 0, feedback: "Could not grade." };
+      return {
+        questionId: q.id,
+        type: q.type,
+        answer: answers[q.id] ?? "",
+        score: grade.score,
+        feedback: grade.feedback,
+      };
     });
 
-    const total = allAnswers.reduce((sum, a) => sum + (a.score ?? 0), 0);
+    const total = gradedAnswers.reduce((sum, a) => sum + (a.score ?? 0), 0);
     const max = questions.reduce((sum, q) => {
       return sum + (q.type === "multiple-choice" ? (q as MultipleChoiceQuestion).points : (q as EssayQuestion).maxPoints);
     }, 0);
@@ -118,14 +98,14 @@ export default function QuizPage() {
       body: JSON.stringify({
         quizId: quiz!.id,
         studentName,
-        answers: allAnswers,
+        answers: gradedAnswers,
         totalScore: total,
         maxScore: max,
         percentage: max > 0 ? Math.round((total / max) * 100) : 0,
       }),
     });
 
-    setGradedAnswers(allAnswers);
+    setGradedAnswers(gradedAnswers);
     setTotalScore(total);
     setMaxScore(max);
     setStep("result");

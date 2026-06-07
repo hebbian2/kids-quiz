@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
 import { getQuiz, saveQuiz, deleteQuiz, getAdminByCode } from "@/lib/storage";
-import { Quiz } from "@/types/quiz";
+import { Quiz, MultipleChoiceQuestion } from "@/types/quiz";
+
+function stripAnswers(quiz: Quiz): Quiz {
+  return {
+    ...quiz,
+    questions: quiz.questions.map((q) => {
+      if (q.type !== "multiple-choice") return q;
+      const { correctAnswer: _, ...rest } = q as MultipleChoiceQuestion;
+      void _;
+      return rest as MultipleChoiceQuestion;
+    }),
+  };
+}
 
 async function getAdmin(req: Request) {
   const code = req.headers.get("x-admin-code") ?? "";
   return getAdminByCode(code.toUpperCase());
 }
 
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const quiz = await getQuiz(id);
   if (!quiz) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(quiz);
+  // Admins can see the full quiz (for editing); students get answers stripped
+  const code = req.headers.get("x-admin-code") ?? "";
+  const admin = code ? await getAdminByCode(code.toUpperCase()) : null;
+  return NextResponse.json(admin ? quiz : stripAnswers(quiz));
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
