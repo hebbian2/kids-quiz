@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import confetti from "canvas-confetti";
 import { Quiz } from "@/types/quiz";
 
 type QuizWithMeta = Quiz & { adminName?: string; grade?: string };
@@ -20,6 +21,14 @@ const PODIUM_HEIGHTS = ["h-24", "h-16", "h-12"];
 const PODIUM_ORDER = [1, 0, 2];
 
 function Podium({ leaders }: { leaders: LeaderEntry[] }) {
+  const fired = useRef(false);
+
+  useEffect(() => {
+    if (leaders.length === 0 || fired.current) return;
+    fired.current = true;
+    confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+  }, [leaders]);
+
   if (leaders.length === 0) return null;
 
   return (
@@ -32,7 +41,7 @@ function Podium({ leaders }: { leaders: LeaderEntry[] }) {
           return (
             <div key={rank} className="flex flex-col items-center gap-1">
               <span className="text-2xl">{PODIUM_MEDALS[rank]}</span>
-              <span className="text-sm font-bold text-gray-800 text-center leading-tight max-w-[88px] truncate">
+              <span className="text-base font-extrabold text-gray-800 text-center leading-tight max-w-24 truncate">
                 {entry.studentName}
               </span>
               <span className="text-xs font-semibold text-gray-600">{entry.quizCount} quiz{entry.quizCount !== 1 ? "zes" : ""}</span>
