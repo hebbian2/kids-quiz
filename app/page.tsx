@@ -7,9 +7,10 @@ type QuizWithMeta = Quiz & { adminName?: string; grade?: string };
 
 interface LeaderEntry {
   studentName: string;
-  percentage: number;
+  quizCount: number;
   totalScore: number;
   maxScore: number;
+  percentage: number;
 }
 
 const PODIUM_MEDALS = ["🥇", "🥈", "🥉"];
@@ -34,7 +35,8 @@ function Podium({ leaders }: { leaders: LeaderEntry[] }) {
               <span className="text-sm font-bold text-gray-800 text-center leading-tight max-w-[88px] truncate">
                 {entry.studentName}
               </span>
-              <span className="text-xs font-semibold text-gray-600">{Math.round(entry.percentage)}%</span>
+              <span className="text-xs font-semibold text-gray-600">{entry.quizCount} quiz{entry.quizCount !== 1 ? "zes" : ""}</span>
+              <span className="text-xs text-gray-500">{entry.totalScore} pts</span>
               <div
                 className={`w-24 ${PODIUM_HEIGHTS[rank]} ${PODIUM_COLORS[rank]} rounded-t-xl flex items-center justify-center text-white font-black text-2xl shadow-md`}
               >
