@@ -5,6 +5,49 @@ import { Quiz } from "@/types/quiz";
 
 type QuizWithMeta = Quiz & { adminName?: string; grade?: string };
 
+interface LeaderEntry {
+  studentName: string;
+  percentage: number;
+  totalScore: number;
+  maxScore: number;
+}
+
+const PODIUM_MEDALS = ["🥇", "🥈", "🥉"];
+const PODIUM_COLORS = ["bg-yellow-400", "bg-gray-300", "bg-orange-400"];
+const PODIUM_HEIGHTS = ["h-24", "h-16", "h-12"];
+// podium order: [2nd, 1st, 3rd] for the classic podium look
+const PODIUM_ORDER = [1, 0, 2];
+
+function Podium({ leaders }: { leaders: LeaderEntry[] }) {
+  if (leaders.length === 0) return null;
+
+  return (
+    <div className="mb-10">
+      <h2 className="text-center text-lg font-bold text-gray-700 mb-4">🏆 Top Scorers</h2>
+      <div className="flex items-end justify-center gap-2">
+        {PODIUM_ORDER.map((rank) => {
+          const entry = leaders[rank];
+          if (!entry) return <div key={rank} className="w-24" />;
+          return (
+            <div key={rank} className="flex flex-col items-center gap-1">
+              <span className="text-2xl">{PODIUM_MEDALS[rank]}</span>
+              <span className="text-sm font-bold text-gray-800 text-center leading-tight max-w-[88px] truncate">
+                {entry.studentName}
+              </span>
+              <span className="text-xs font-semibold text-gray-600">{Math.round(entry.percentage)}%</span>
+              <div
+                className={`w-24 ${PODIUM_HEIGHTS[rank]} ${PODIUM_COLORS[rank]} rounded-t-xl flex items-center justify-center text-white font-black text-2xl shadow-md`}
+              >
+                {rank + 1}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   English:            "bg-cyan-200 text-cyan-900",
   Math:               "bg-pink-200 text-pink-900",
@@ -25,6 +68,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [leaders, setLeaders] = useState<LeaderEntry[]>([]);
   const PAGE_SIZE = 10;
 
   function shareQuiz(e: React.MouseEvent, quizId: string) {
@@ -54,6 +98,10 @@ export default function Home() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+    fetch("/api/leaderboard")
+      .then((r) => r.json())
+      .then((data) => setLeaders(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, []);
 
   const categories = ["All", ...Array.from(new Set(quizzes.map((q) => q.category).filter(Boolean)))];
@@ -83,6 +131,8 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Kids Quiz by Mama Diva</h1>
           <p className="text-gray-500 text-lg">Pick a quiz and show what you know!</p>
         </div>
+
+        <Podium leaders={leaders} />
 
         {/* Search + Reload */}
         <div className="flex gap-2 mb-4">
